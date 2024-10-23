@@ -1,0 +1,30 @@
+html {
+  font-size: 14px;
+}
+
+/*.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}*/
+
+@media (max-width: 768px) {
+    .chat-container {
+        flex-direction: column;
+    }
+
+    .receiver-list {
+        display: none; /* Hidden on mobile view */
+    }
+
+    .show-receiver-list .receiver-list {
+        display: block; /* Show after sending a message */
+    }
+}
