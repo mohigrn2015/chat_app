@@ -84,7 +84,7 @@
 
     connection.on("receiveMessage", function (message, adminUserId, client_id) {
 
-        loadMessagesById(client_id, adminUserId);
+        loadMessagesById(adminUserId,client_id);
     });
 
     connection.on("updateReceiverList", function (receivers) {
@@ -107,6 +107,14 @@
             });
             $sendButton.hide();
             $fileSendButton.show();
+        }
+    });
+
+    $('#attachmentButton').on('keypress', function (e) {
+        if (e.which === 13) {
+            sendFile();
+            $fileSendButton.hide();
+            $sendButton.show();            
         }
     });
 
@@ -150,7 +158,7 @@
                         body: formData
                     });
 
-                    loadMessagesById(client_id_client_use, user_id_client_use);
+                    loadMessagesById(user_id_client_use,client_id_client_use);
 
                     $messageInput.val('');
 
@@ -184,7 +192,7 @@
                         body: formData
                     });
 
-                    loadMessagesById(client_id_admin_end, admin_user_id_admin_end);
+                    loadMessagesById(admin_user_id_admin_end,client_id_admin_end);
 
                     $messageInput.val('');
 
@@ -225,32 +233,71 @@
         selectedFile = null;
     });
     async function sendFile() {
-        if (selectedFile) {
-            const formData = new FormData();
-            formData.append('file', selectedFile);
-            const fileName = selectedFile.name;
-            formData.append('receiverId', receiverId);
-            formData.append('content', '');
-            formData.append('fileName', fileName);
-            formData.append('filePath', '');
-            formData.append('browserOrSenderId', uniqueBrowserId);
 
-            try {
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                });
+        var role_client_use = sessionStorage.getItem('role_client_use');
+        var user_id_client_use = sessionStorage.getItem('user_id_client_use');
+        var client_id_client_use = sessionStorage.getItem('client_id_client_use');
+        var admin_user_role = sessionStorage.getItem('admin_user_role');
+        var admin_user_id_admin_end = sessionStorage.getItem('admin_user_id_admin_end');
+        var client_id_admin_end = sessionStorage.getItem('client_id_admin_end');
+        var client_conn_id = sessionStorage.getItem('client_connection_id');
+        var admin_conn_id = sessionStorage.getItem('admin_connection_id');
 
-                //const result = await response.json();
-                //const filePath = result.filePath;
+        if (role_client_use != null && role_client_use == 'Client' && role_client_use === 'Client') {
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                const fileName = selectedFile.name;
+                formData.append('userid', user_id_client_use);
+                formData.append('content', '');
+                formData.append('fileName', fileName);
+                formData.append('filePath', '');
+                formData.append('browserOrSenderId', uniqueBrowserId);
+                formData.append('clientUserId', client_id_client_use);
+                formData.append('user_role', admin_user_role);
+                formData.append('admin_conn_id', admin_conn_id);
+                formData.append('client_conn_id', client_conn_id);
 
-                //await connection.invoke("SendMessage", uniqueBrowserId, '', fileName, filePath, uniqueBrowserId);
+                try {
+                    const response = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    resetFilePopup();
+                    loadMessagesById(user_id_client_use,client_id_client_use);
 
-                resetFilePopup();
-            } catch (error) {
-                console.error('Error sending file:', error);
+                } catch (error) {
+                    console.error('Error sending file:', error);
+                }
             }
-        }
+        } else if (admin_user_role != null && admin_user_role == 'Admin' && admin_user_role === 'Admin') {
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                const fileName = selectedFile.name;
+                formData.append('userid', admin_user_id_admin_end);
+                formData.append('content', '');
+                formData.append('fileName', fileName);
+                formData.append('filePath', '');
+                formData.append('browserOrSenderId', uniqueBrowserId);
+                formData.append('clientUserId', client_id_admin_end);
+                formData.append('user_role', admin_user_role);
+                formData.append('admin_conn_id', admin_conn_id);
+                formData.append('client_conn_id', client_conn_id);
+
+                try {
+                    const response = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    resetFilePopup();
+                    loadMessagesById(admin_user_id_admin_end, client_id_admin_end);
+
+                } catch (error) {
+                    console.error('Error sending file:', error);
+                }
+            }
+        }       
     }
 
     function resetFilePopup() {
@@ -314,7 +361,7 @@
         }        
     }
 
-    function loadMessagesById(client_id, user_id) {
+    function loadMessagesById(user_id, client_id) {
 
         //sessionStorage.setItem('client_userid', client_id);
         //sessionStorage.setItem('admin_userid', user_id);
@@ -327,7 +374,7 @@
                 $chatMessages.empty();
                 console.log("responses: ", responses);
                 responses.forEach(function (message) {
-                    displayMessage(message, message.user_id, message.client_id);
+                    displayMessage(message, user_id, client_id);
                 });
             },
             error: function (err) {
@@ -336,26 +383,34 @@
         });
     }
 
-
     function displayMessage(message, receiverIdDb, sender) {
+        var messageClass = "";      
 
-        //var client_id = $('#client_id').val();
-        //console.log("message: ", message);
-        var messageClass = "";
-
-        if (message.browser_id == uniqueBrowserId || message.browser_id === uniqueBrowserId) {
-            messageClass = "message-sender";
-        } else {
+        if (message.browser_id != uniqueBrowserId) {
             messageClass = "message-receiver";
+        } else {
+            messageClass = "message-sender";            
         }
-        const messageHtml = `<div class="message-container"><div class="${messageClass}">${message.content}${message.filePath ? `<a href="${message.filePath}" target="_blank" style="text-decoration: none;">
-                             ${message.fileName}</a><a href="${message.filePath}" download="${message.fileName}" style="text-decoration: none;"><i class="fas fa-download" style="margin-left: 5px; cursor: pointer;"></i></a>` : ""}</div>
-                            </div>`;
 
+        // Remove prefix "=-==" from the file name if it exists
+        let displayFileName = message.fileName ? message.fileName.split('=-==')[1] : "";
+
+        // Construct the message HTML, only display content if it's not null or empty
+        const messageHtml = `<div class="message-container">
+                            <div class="${messageClass}">
+                                ${message.content ? message.content : ""}
+                                ${message.filePath ? `<a href="${message.filePath}" target="_blank" style="text-decoration: none;">${displayFileName}</a>
+                                                     <a href="${message.filePath}" download="${displayFileName}" style="text-decoration: none;">
+                                                     <i class="fas fa-download" style="margin-left: 5px; cursor: pointer;"></i></a>` : ""}
+                            </div>
+                         </div>`;
+
+        // Append the message to the chat messages container
         $chatMessages.append(messageHtml);
         $chatMessages.scrollTop($chatMessages[0].scrollHeight);
-        $('.chat-container').addClass('show-receiver-list');
 
+        // Add class to show receiver list
+        $('.chat-container').addClass('show-receiver-list');
     }
 
     function updateReceiverList(receivers) {
@@ -405,7 +460,9 @@
                 sessionStorage.setItem('user_id_client_use', '');
                 sessionStorage.setItem('user_id_client_use', receiverId);
 
-                loadMessagesById(user_id_client_use, client_id_client_use);
+                var user_id_client_using = sessionStorage.getItem('user_id_client_use');
+
+                loadMessagesById(user_id_client_using, client_id_client_use);
             });
         } else if (admin_user_role != null && admin_user_role == 'Admin' && admin_user_role === 'Admin') {
 
@@ -432,32 +489,13 @@
                 sessionStorage.setItem('client_id_admin_end', '');
                 sessionStorage.setItem('client_id_admin_end', receiverId);
 
-                loadMessagesById(admin_user_id_admin_end, client_id_admin_end);
+                var client_id_admin_end_using = sessionStorage.getItem('client_id_admin_end');
+
+                loadMessagesById(admin_user_id_admin_end, client_id_admin_end_using);
             });
         }
     }
 
-
-    //function updateReceiverList(receivers) {
-    //    const $receiverList = $('#receiverList');  
-
-    //    const inputField1 = sessionStorage.getItem('name');
-    //    const inputField2 = sessionStorage.getItem('email');
-
-    //    $receiverList.empty();
-
-    //    console.log("Test: ", receivers);
-
-    //    const receiverItem1 = `<div class="receiver-item" data-id=${receivers.id}>${receivers.name}</div>`;
-    //    $receiverList.append(receiverItem1);
-    //    $('.chat-container').addClass('show-receiver-list');
-    //    //receivers.forEach(function (item) {
-    //    //    const receiverItem1 = `<div class="receiver-item" data-id=${item.id}>${item.name}</div>`;
-    //    //    $receiverList.append(receiverItem1);
-    //    //    $('.chat-container').addClass('show-receiver-list');
-    //    //});
-    //}
-    
     function showModal() {
         $('#alertModal').show();
     }
@@ -563,26 +601,6 @@
         });
     }
 
-
-    //function initializeChat(purpose) {
-    //    $.ajax({
-    //        url: '/api/GetReceiversByPurpose',
-    //        type: 'GET',
-    //        data: { purpose: purpose, browserId: uniqueBrowserId },
-    //        success: function (receivers) {
-
-    //            console.log("receivers -: ", receivers);
-
-    //            var firstUser = receivers[0];
-    //            sessionStorage.setItem('user_id', firstUser.id);
-
-    //            updateReceiverList(receivers);
-    //        },
-    //        error: function (error) {
-    //            console.log("Error fetching receivers:", error);
-    //        }
-    //    });
-    //}
     async function startSignalRConnection(clientId) {
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/chathub", {
@@ -643,7 +661,7 @@
 
                         updateReceiverList(userResponse);
 
-                        loadMessagesById(firstUser.client_id, firstUser.admin_user_id);
+                        loadMessagesById(firstUser.admin_user_id,firstUser.client_id);
                         //sessionStorage.setItem('userid', firstUser.userid);
                     } else {
                         console.warn("No users found in response.");
@@ -658,38 +676,5 @@
         } catch (error) {
             console.error("Error logging in:", error);
         }
-    });
-    //$('#loginButton_submit').on('click', function () {
-    //    const usernames = $('#loginEmail').val();
-    //    const passwords = $('#loginPassword').val();               
-
-    //    const formData = new FormData();
-    //    formData.append('username', usernames);
-    //    formData.append('password', passwords);
-
-    //    try {
-    //        $.ajax({
-    //            url: '../api/Login',
-    //            type: 'POST',
-    //            contentType: 'application/json', 
-    //            data: JSON.stringify(formData), // JSON data matches model
-    //            success: function (userResponse) {
-    //                console.log("response: ", userResponse);
-
-    //                //$('#loginModal').hide();
-    //                //hideModal();
-    //                //$('.chat-container').show();
-    //                //updateReceiverList(userResponse);
-    //                //loadMessages();
-    //            },
-    //            error: function (error) {
-    //                console.log("Error logging in:", error);
-    //            }
-    //        });
-    //    } catch (error) {
-    //        console.error("Error logging in:", error);
-    //    }
-    //});
-
-
+    });    
 });

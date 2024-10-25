@@ -75,45 +75,13 @@ namespace ChatApp.Controllers
             }
         }
 
-        //[HttpPost]
-        //[Route("api/Login")]
-        //public async Task<IActionResult> Login([FromForm] LoginRequestModel formData)
-        //{
-        //    BLLAuthentication bLLAuthentication = new BLLAuthentication();
-        //    try
-        //    {
-        //        List<UserInfoRespModel> userResponse = new List<UserInfoRespModel>();
-        //        //userResponse = _userService.ValidateUser(request.Username, request.Password);
-        //        userResponse = new List<UserInfoRespModel>()
-        //        {
-        //            new UserInfoRespModel()
-        //            {
-        //                id = 1000,
-        //                name = "Mohiuddin",
-        //            },
-        //            new UserInfoRespModel()
-        //            {
-        //                id = 1001,
-        //                name = "Fahim Ahmed",
-        //            }
-        //        };
-
-        //        //userResponse = bLLAuthentication.GetUserInformation(username, password);
-
-        //        return Ok(userResponse);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //}
-
         [HttpPost("upload")]
         public async Task<IActionResult> UploadFile([FromForm] IFormFile file, int userid, string content, string fileName, string filePath, string browserOrSenderId, string clientUserId, string user_role, string admin_conn_id, string client_conn_id)
         {
             UserResponseModel userResponseModel = new UserResponseModel();
             BLLContent bLLContent = new BLLContent();
             ConnectionRespModel connection = new ConnectionRespModel();
+
             try
             {
                 int connector_id = 0;
@@ -132,12 +100,21 @@ namespace ChatApp.Controllers
                 if (file != null && file.Length > 0)
                 {
                     string uniqid = Guid.NewGuid().ToString();
-                    filePath = Path.Combine("wwwroot", "uploads", uniqid+"=-=="+file.FileName);
+                    string fileNameWithUniqueId = uniqid + "=-==" + file.FileName;
+                    filePath = Path.Combine("wwwroot", "uploads", fileNameWithUniqueId);
+
+                    // Save the file on the server
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         await file.CopyToAsync(stream);
                     }
-                    filePath = "../uploads/" + uniqid + "=-==" + file.FileName;
+
+                    // Build relative path for the file
+                    string relativeFilePath = "/uploads/" + fileNameWithUniqueId;
+
+                    // Get the full URL by combining request scheme, host, and relative path
+                    var request = HttpContext.Request;
+                    string fullFileUrl = $"{request.Scheme}://{request.Host}{relativeFilePath}";
 
                     var message = new Message
                     {
@@ -145,16 +122,16 @@ namespace ChatApp.Controllers
                         ReceiverId = userid,
                         Content = content,
                         Timestamp = DateTime.UtcNow,
-                        FilePath = filePath,
+                        FilePath = fullFileUrl, // Store the full URL path here
                         BrowserId = browserOrSenderId,
-                        FileName = uniqid + "=-==" + file.FileName,
+                        FileName = fileNameWithUniqueId,
                         RoleName = role_name,
                         Connector_id = connector_id
                     };
 
                     connection = bLLContent.SaveContentData(message);
 
-                    await _chatHub.SendMessage(userid, "", fileName, filePath, browserOrSenderId, Convert.ToInt32(clientUserId), user_role, connection.connection_id);
+                    await _chatHub.SendMessage(userid, "", fileName, fullFileUrl, browserOrSenderId, Convert.ToInt32(clientUserId), user_role, connection.connection_id);
 
                     return Ok();
                 }
@@ -163,9 +140,9 @@ namespace ChatApp.Controllers
                     return BadRequest("Invalid file.");
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
 
