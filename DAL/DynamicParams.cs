@@ -15,6 +15,7 @@ namespace ChatApp.DAL
             parameters.Add("@CLIENT_EMAIL", model.email);
             parameters.Add("@PASSWORD", model.password);
             parameters.Add("@USER_ID", model.user_id);
+            parameters.Add("@CONNECTION_ID", model.connection_id);
 
             return parameters;
         }
@@ -36,6 +37,8 @@ namespace ChatApp.DAL
             parameters.Add("@FILENAME", model.FileName);
             parameters.Add("@FILEPATH", model.FilePath);
             parameters.Add("@BROWSER_ID", model.BrowserId);
+            parameters.Add("@CONNECTOR_ID", model.Connector_id);
+            parameters.Add("@ROLE_NAME", model.RoleName);
 
             return parameters;
         }
@@ -54,6 +57,7 @@ namespace ChatApp.DAL
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@USER_NAME", login.username);
             parameters.Add("@PASSWORD", login.password);
+            parameters.Add("@CONNECTION_ID", login.connection_id);
 
             return parameters;
         }

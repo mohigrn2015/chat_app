@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ChatApp.Controllers
 {
@@ -108,44 +109,52 @@ namespace ChatApp.Controllers
         //}
 
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadFile([FromForm] IFormFile file, int receiverId, string content, string fileName, string filePath, string browserOrSenderId)
+        public async Task<IActionResult> UploadFile([FromForm] IFormFile file, int userid, string content, string fileName, string filePath, string browserOrSenderId, string clientUserId, string user_role, string admin_conn_id, string client_conn_id)
         {
+            UserResponseModel userResponseModel = new UserResponseModel();
+            BLLContent bLLContent = new BLLContent();
+            ConnectionRespModel connection = new ConnectionRespModel();
             try
             {
-                int sender = 0;
-                string s_id = string.Empty;
-
-                if (_httpContextAccessor.HttpContext != null)
+                int connector_id = 0;
+                string role_name = string.Empty;
+                if (String.IsNullOrEmpty(admin_conn_id) || admin_conn_id == null || admin_conn_id == "null")
                 {
-                    int clientId = Convert.ToInt32(_httpContextAccessor.HttpContext.Session.GetString("session_client_id"));
-                    if (clientId <= 0)
-                    {
-                        //SaveDataFirstUser(browserOrSenderId, "", "", 0);
-                        s_id = _httpContextAccessor.HttpContext.Session.GetString("session_client_id");
-                        sender = Convert.ToInt32(s_id);
-                    }
-                    else
-                    {
-                        sender = clientId;
-                    }
+                    connector_id = userid;
+                    role_name = "Admin";
                 }
                 else
                 {
-                    //SaveDataFirstUser(browserOrSenderId, "", "", 0);
-                    s_id = _httpContextAccessor.HttpContext.Session.GetString("session_client_id");
-                    sender = Convert.ToInt32(s_id);
+                    connector_id = Convert.ToInt32(clientUserId);
+                    role_name = "Client";
                 }
 
                 if (file != null && file.Length > 0)
                 {
-                    filePath = Path.Combine("wwwroot", "uploads", file.FileName);
+                    string uniqid = Guid.NewGuid().ToString();
+                    filePath = Path.Combine("wwwroot", "uploads", uniqid+"=-=="+file.FileName);
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         await file.CopyToAsync(stream);
                     }
-                    filePath = "/uploads/" + file.FileName;
+                    filePath = "../uploads/" + uniqid + "=-==" + file.FileName;
 
-                    await _chatHub.SendMessage(receiverId, "", fileName, filePath, browserOrSenderId, sender);
+                    var message = new Message
+                    {
+                        SenderId = Convert.ToInt32(clientUserId),
+                        ReceiverId = userid,
+                        Content = content,
+                        Timestamp = DateTime.UtcNow,
+                        FilePath = filePath,
+                        BrowserId = browserOrSenderId,
+                        FileName = uniqid + "=-==" + file.FileName,
+                        RoleName = role_name,
+                        Connector_id = connector_id
+                    };
+
+                    connection = bLLContent.SaveContentData(message);
+
+                    await _chatHub.SendMessage(userid, "", fileName, filePath, browserOrSenderId, Convert.ToInt32(clientUserId), user_role, connection.connection_id);
 
                     return Ok();
                 }
@@ -221,7 +230,7 @@ namespace ChatApp.Controllers
 
         [HttpGet]
         [Route("api/GetReceiversByPurpose")]
-        public IActionResult GetReceiversByPurpose(string purpose, string browserId)
+        public IActionResult GetReceiversByPurpose(string purpose, string browserId, string connection_id)
         {
             BLLAuthentication bLLAuthentication = new BLLAuthentication();
             List<ExpartNameRespModel> receivers = new List<ExpartNameRespModel>();
@@ -246,7 +255,7 @@ namespace ChatApp.Controllers
                 HttpContext.Session.SetString("user_name", userName);
                 HttpContext.Session.SetString("session_user_id", ids.ToString());
 
-                userResponseModel = SaveDataFirstUser(browserId, "", "", ids);
+                userResponseModel = SaveDataFirstUser(browserId, "", "", ids, connection_id);
 
                 // Set the combined response
                 responseModel.Receivers = receivers;
@@ -259,9 +268,6 @@ namespace ChatApp.Controllers
 
             return Ok(responseModel);
         }
-
-
-
 
         //[HttpGet]
         //[Route("api/GetReceiversByPurpose")]
@@ -333,12 +339,26 @@ namespace ChatApp.Controllers
 
         [HttpPost]
         [Route("api/SendContentMessage")]
-        public async Task<IActionResult> SendContentMessage(int userid, string content, string fileName, string filePath, string browserOrSenderId, string clientUserId, string user_role)
+        public async Task<IActionResult> SendContentMessage(int userid, string content, string fileName, string filePath, string browserOrSenderId, string clientUserId, string user_role, string admin_conn_id, string client_conn_id)
         {
             UserResponseModel userResponseModel = new UserResponseModel();
             BLLContent bLLContent = new BLLContent();
+            ConnectionRespModel connection = new ConnectionRespModel();
             try
-            {      
+            {
+                int connector_id = 0;
+                string role_name = string.Empty;
+                if (String.IsNullOrEmpty(admin_conn_id) || admin_conn_id == null || admin_conn_id =="null")
+                {
+                    connector_id = userid;
+                    role_name = "Admin";
+                }
+                else
+                {
+                    connector_id = Convert.ToInt32(clientUserId);
+                    role_name = "Client";
+                }
+
                 var message = new Message
                 {
                     SenderId = Convert.ToInt32(clientUserId),
@@ -347,14 +367,16 @@ namespace ChatApp.Controllers
                     Timestamp = DateTime.UtcNow,
                     FilePath = filePath,
                     BrowserId = browserOrSenderId,
-                    FileName = fileName
+                    FileName = fileName,
+                    RoleName= role_name,
+                    Connector_id = connector_id
                 };
 
-                bLLContent.SaveContentData(message);
+                connection = bLLContent.SaveContentData(message);
 
                 try
                 {
-                    await _chatHub.SendMessage(userid, content, fileName, filePath, browserOrSenderId, Convert.ToInt32(clientUserId));
+                    await _chatHub.SendMessage(userid, content, fileName, filePath, browserOrSenderId, Convert.ToInt32(clientUserId), user_role, connection.connection_id);
                 }
                 catch (Exception ex)
                 {
@@ -370,7 +392,7 @@ namespace ChatApp.Controllers
             }
             return Ok();
         }
-        public UserResponseModel SaveDataFirstUser(string name, string email, string password, int user_id)
+        public UserResponseModel SaveDataFirstUser(string name, string email, string password, int user_id, string connection_id)
         {
             BLLAuthentication bLLAuthentication = new BLLAuthentication();
             UserResponseModel userResponseModel = new UserResponseModel();
@@ -382,7 +404,8 @@ namespace ChatApp.Controllers
                     name = name,
                     email = email,
                     password = password,
-                    user_id = user_id
+                    user_id = user_id,
+                    connection_id = connection_id
                 };
 
                 //userResponseModel.client_id = 12344;

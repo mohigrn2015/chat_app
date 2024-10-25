@@ -8,12 +8,14 @@ namespace ChatApp.BLL
 {
     public class BLLContent
     {
-        public void SaveContentData(Message model)
+        public ConnectionRespModel SaveContentData(Message model)
         {
             DALContent dALContent = new DALContent();
+            ConnectionRespModel connection_id = new ConnectionRespModel();
             try
             {
-                dALContent.SaveContent(model);
+                connection_id = dALContent.SaveContent(model);
+                return connection_id;
             }
             catch (Exception ex)
             {

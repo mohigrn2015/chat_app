@@ -11,6 +11,8 @@
         public string FilePath { get; set; }
         public string BrowserId { get; set; }
         public string FileName { get; set; }
+        public string RoleName { get; set; }
+        public int Connector_id { get; set; }
     }
 
 
