@@ -244,55 +244,7 @@ namespace ChatApp.Controllers
             }
 
             return Ok(responseModel);
-        }
-
-        //[HttpGet]
-        //[Route("api/GetReceiversByPurpose")]
-        //public IActionResult GetReceiversByPurpose(string purpose, string browserId)
-        //{
-        //    BLLAuthentication bLLAuthentication = new BLLAuthentication();
-        //    List<ExpartNameRespModel> receivers = new List<ExpartNameRespModel>();
-        //    UserResponseModel userResponseModel = new UserResponseModel();
-        //    try
-        //    {
-        //        int ids = 0;
-        //        string userName = string.Empty;
-        //        int purposeId = Convert.ToInt32(purpose);
-
-        //        receivers = bLLAuthentication.GetExpartName(purposeId);
-
-        //        var reciever = receivers.FirstOrDefault();
-
-        //        if (reciever != null)
-        //        {
-        //            ids = reciever.id;
-        //            userName = reciever.name;
-        //        }
-        //        //receivers = new List<ExpartNameRespModel>()
-        //        //{
-        //        //    new ExpartNameRespModel()
-        //        //    {
-        //        //        id = 1000,
-        //        //        name = "Mohiuddin"
-        //        //    },
-        //        //    new ExpartNameRespModel()
-        //        //    {
-        //        //        id = 1001,
-        //        //        name = "Shahed Rahman"
-        //        //    }
-        //        //};
-
-        //        HttpContext.Session.SetString("user_name", userName);
-        //        HttpContext.Session.SetString("session_user_id", ids.ToString());
-
-        //        userResponseModel = SaveDataFirstUser(browserId, "", "", ids);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //    return Ok(receivers);
-        //}
+        }        
 
         [HttpGet]
         [Route("api/GetMessage")]

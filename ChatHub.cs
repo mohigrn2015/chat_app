@@ -39,28 +39,6 @@ namespace ChatApp
                 try
                 {
                     await _hubContext.Clients.Client(connectionId).SendAsync("receiveMessage", message, receiverId, sender);
-                    
-                    
-                    //if (!String.IsNullOrEmpty(roleName))
-                    //{
-                    //    if (roleName == "Admin")
-                    //    {
-
-                    //        await _hubContext.Clients.Client(connectionId).SendAsync("receiveMessage", message, receiverId, sender);
-                    //    }
-                    //    else if (roleName == "Client")
-                    //    {
-                    //        if (_userConnections.TryGetValue(receiverId.ToString(), out string connectionId))
-                    //        {
-                    //            // Send message to the specific receiver's connection
-                    //            await _hubContext.Clients.Client(connectionId).SendAsync("receiveMessage", message, receiverId, sender);
-                    //        }
-                    //        else
-                    //        {
-                    //            Console.WriteLine($"Receiver with ID {receiverId} is not connected.");
-                    //        }
-                    //    }
-                    //}
                 }
                 catch (Exception ex)
                 {
@@ -75,46 +53,6 @@ namespace ChatApp
             }
         }
 
-
-        //public async Task SendMessage(int receiverId, string content, string fileName, string filePath, string browserOrSenderId, int sender)
-        //{
-        //    UserResponseModel userResponseModel = new UserResponseModel();
-        //    try
-        //    {
-        //        var message = new Message
-        //        {
-        //            SenderId = sender,
-        //            ReceiverId = receiverId,
-        //            Content = content,
-        //            Timestamp = DateTime.UtcNow,
-        //            FilePath = filePath,
-        //            BrowserId = browserOrSenderId,
-        //            FileName = fileName
-        //        };
-        //        try
-        //        {
-        //            if (!string.IsNullOrEmpty(receiverId.ToString()))
-        //            {
-        //                await _hubContext.Clients.All.SendAsync("receiveMessage", message, receiverId, sender);
-        //                //await Clients.User(receiverId.ToString()).SendAsync("receiveMessage", message);
-        //            }
-        //            else
-        //            {
-        //                await _hubContext.Clients.All.SendAsync("receiveMessage", message);
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            // Log the error for debugging purposes
-        //            Console.WriteLine($"Error in SendMessage: {ex.Message}");
-        //            throw new HubException("An error occurred while sending the message.");
-        //        }
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //}
 
         public async Task OnUserConnected(string clientId)
         {

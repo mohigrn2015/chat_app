@@ -9,8 +9,8 @@ namespace ChatApp.DAL
 {
     public class DALAuthentication
     {
-        private string dbConnection = "Data Source=MOHIUDDIN;Initial Catalog=CSCHAT;User ID=csms;Password=cs1234;Encrypt=True;TrustServerCertificate=True;";
-        //private string dbConnection = "Data Source=MANONAHMED;Initial Catalog=CSCHAT;User ID=csms;Password=cs1234;Encrypt=True;TrustServerCertificate=True;";
+        //private string dbConnection = "Data Source=MOHIUDDIN;Initial Catalog=CSCHAT;User ID=csms;Password=cs1234;Encrypt=True;TrustServerCertificate=True;";
+        private string dbConnection = "Data Source=MANONAHMED;Initial Catalog=CSCHAT;User ID=csms;Password=cs1234;Encrypt=True;TrustServerCertificate=True;";
         public UserResponseModel SaveClientData(ClientSaveReqModel model)
         {
             DynamicParams dynamic = new DynamicParams();
