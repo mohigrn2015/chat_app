@@ -12,6 +12,7 @@ namespace ChatApp.DAL
     public class DALContent
     {
         private string dbConnection = "Data Source=MOHIUDDIN;Initial Catalog=CSCHAT;User ID=csms;Password=cs1234;Encrypt=True;TrustServerCertificate=True;";
+        //private string dbConnection = "Data Source=MANONAHMED;Initial Catalog=CSCHAT;User ID=csms;Password=cs1234;Encrypt=True;TrustServerCertificate=True;";
          
         public ConnectionRespModel SaveContent(Message message)
         {

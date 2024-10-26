@@ -84,7 +84,7 @@
 
     connection.on("receiveMessage", function (message, adminUserId, client_id) {
 
-        loadMessagesById(adminUserId,client_id);
+        loadMessagesById(adminUserId, client_id);
     });
 
     connection.on("updateReceiverList", function (receivers) {
@@ -114,7 +114,7 @@
         if (e.which === 13) {
             sendFile();
             $fileSendButton.hide();
-            $sendButton.show();            
+            $sendButton.show();
         }
     });
 
@@ -158,7 +158,7 @@
                         body: formData
                     });
 
-                    loadMessagesById(user_id_client_use,client_id_client_use);
+                    loadMessagesById(user_id_client_use, client_id_client_use);
 
                     $messageInput.val('');
 
@@ -170,7 +170,7 @@
             } else {
                 console.warn('Message content or receiver ID is invalid');
             }
-        } else if (admin_user_role != null && admin_user_role == 'Admin' && admin_user_role === 'Admin'){
+        } else if (admin_user_role != null && admin_user_role == 'Admin' && admin_user_role === 'Admin') {
             if (messageContent) {
 
                 const formData = new FormData();
@@ -192,7 +192,7 @@
                         body: formData
                     });
 
-                    loadMessagesById(admin_user_id_admin_end,client_id_admin_end);
+                    loadMessagesById(admin_user_id_admin_end, client_id_admin_end);
 
                     $messageInput.val('');
 
@@ -215,6 +215,16 @@
     $('#loginButton').on('click', function () {
         //$('#alertModal').hide();
         $('#loginModal').show();
+    });
+
+    $("#themeToggleButton").click(function () {
+        $("body").toggleClass("dark-theme");
+        // Add any other theme toggle logic here
+    });
+
+    $("#settingsButton").click(function () {
+        // Add your settings button logic here
+        alert("Settings button clicked!"); // Example action
     });
 
     // Close Login Modal on cancel
@@ -264,7 +274,7 @@
                         body: formData
                     });
                     resetFilePopup();
-                    loadMessagesById(user_id_client_use,client_id_client_use);
+                    loadMessagesById(user_id_client_use, client_id_client_use);
 
                 } catch (error) {
                     console.error('Error sending file:', error);
@@ -297,7 +307,7 @@
                     console.error('Error sending file:', error);
                 }
             }
-        }       
+        }
     }
 
     function resetFilePopup() {
@@ -358,7 +368,7 @@
                     console.error('Error fetching messages', err);
                 }
             });
-        }        
+        }
     }
 
     function loadMessagesById(user_id, client_id) {
@@ -384,12 +394,12 @@
     }
 
     function displayMessage(message, receiverIdDb, sender) {
-        var messageClass = "";      
+        var messageClass = "";
 
         if (message.browser_id != uniqueBrowserId) {
             messageClass = "message-receiver";
         } else {
-            messageClass = "message-sender";            
+            messageClass = "message-sender";
         }
 
         // Remove prefix "=-==" from the file name if it exists
@@ -420,6 +430,24 @@
         var loggedin_userid = sessionStorage.getItem('admin_user_id_admin_end');
         $receiverList.empty();
 
+        // Add a container for the header with buttons and text
+        const header = `
+    <div class="d-flex justify-content-between align-items-center mb-3" style="transition: box-shadow 0.3s ease;" onmouseover="this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.3)'" onmouseout="this.style.boxShadow='none'">
+        <div class="quazarr-text" style="font-weight: bold; margin-left: 0; font-size: 2.25rem;">Quazarr</div>
+        <div class="d-flex align-items-center">
+            <button id="settingsButton" class="btn btn-light" title="Settings" style="width: 40px; height: 40px;">
+                <i class="fas fa-cog"></i>
+            </button>
+            <button id="themeToggleButton" class="btn btn-light" title="Toggle Theme" style="width: 40px; height: 40px;">
+                <i class="fas fa-adjust"></i>
+            </button>
+        </div>
+    </div>
+`;
+
+        $receiverList.append(header);
+
+        // Append receiver items
         receivers.forEach(function (receiver) {
             const receiverItem = `<div class="receiver-item" data-id="${receiver.client_id}">${receiver.name}</div>`;
             $receiverList.append(receiverItem);
@@ -435,8 +463,8 @@
         var admin_user_id_admin_end = sessionStorage.getItem('admin_user_id_admin_end');
         var client_id_admin_end = sessionStorage.getItem('client_id_admin_end');
 
-        if (role_client_use != null && role_client_use == 'Client' && role_client_use === 'Client') {
-
+        // Client role logic
+        if (role_client_use != null && role_client_use === 'Client') {
             sessionStorage.setItem('client_connection_id', connection.connectionId);
 
             if (receivers.length > 0) {
@@ -450,7 +478,6 @@
             }
 
             $('.receiver-item').on('click', function () {
-
                 const receiversId = $(this).data('id');
 
                 $('.receiver-item').removeClass('selected');
@@ -464,8 +491,9 @@
 
                 loadMessagesById(user_id_client_using, client_id_client_use);
             });
-        } else if (admin_user_role != null && admin_user_role == 'Admin' && admin_user_role === 'Admin') {
-
+        }
+        // Admin role logic
+        else if (admin_user_role != null && admin_user_role === 'Admin') {
             sessionStorage.setItem('admin_connection_id', connection.connectionId);
 
             if (receivers.length > 0) {
@@ -479,7 +507,6 @@
             }
 
             $('.receiver-item').on('click', function () {
-
                 const receiversId = $(this).data('id');
 
                 $('.receiver-item').removeClass('selected');
@@ -495,6 +522,110 @@
             });
         }
     }
+
+    const themeToggleButton = $('#themeToggleButton');
+
+    // Check localStorage for a saved theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        $('body').addClass(savedTheme);
+    } else {
+        $('body').addClass('light-theme'); // Default to light theme
+    }
+
+    // Theme toggle functionality
+    themeToggleButton.on('click', function () {
+        $('body').toggleClass('dark-theme light-theme');
+
+        // Save the current theme in localStorage
+        const currentTheme = $('body').hasClass('dark-theme') ? 'dark-theme' : 'light-theme';
+        localStorage.setItem('theme', currentTheme);
+    });
+
+
+
+    //function updateReceiverList(receivers) {
+    //    const $receiverList = $('#receiverList');
+    //    var storedUserId = sessionStorage.getItem('userid');
+    //    var user_role = sessionStorage.getItem('user_role');
+    //    var loggedin_userid = sessionStorage.getItem('admin_user_id_admin_end');
+    //    $receiverList.empty();
+
+    //    receivers.forEach(function (receiver) {
+    //        const receiverItem = `<div class="receiver-item" data-id="${receiver.client_id}">${receiver.name}</div>`;
+    //        $receiverList.append(receiverItem);
+    //    });
+
+    //    $('.chat-container').addClass('show-receiver-list');
+
+    //    var role_client_use = sessionStorage.getItem('role_client_use');
+    //    var user_id_client_use = sessionStorage.getItem('user_id_client_use');
+    //    var client_id_client_use = sessionStorage.getItem('client_id_client_use');
+
+    //    var admin_user_role = sessionStorage.getItem('admin_user_role');
+    //    var admin_user_id_admin_end = sessionStorage.getItem('admin_user_id_admin_end');
+    //    var client_id_admin_end = sessionStorage.getItem('client_id_admin_end');
+
+    //    if (role_client_use != null && role_client_use == 'Client' && role_client_use === 'Client') {
+
+    //        sessionStorage.setItem('client_connection_id', connection.connectionId);
+
+    //        if (receivers.length > 0) {
+    //            const firstReceiver = $receiverList.find('.receiver-item').first();
+    //            const receiversId = firstReceiver.data('id');
+    //            $('.receiver-item').removeClass('selected');
+    //            firstReceiver.addClass('selected');
+    //            receiverId = receiversId;
+
+    //            loadMessagesById(user_id_client_use, client_id_client_use);
+    //        }
+
+    //        $('.receiver-item').on('click', function () {
+
+    //            const receiversId = $(this).data('id');
+
+    //            $('.receiver-item').removeClass('selected');
+    //            $(this).addClass('selected');
+
+    //            receiverId = receiversId;
+    //            sessionStorage.setItem('user_id_client_use', '');
+    //            sessionStorage.setItem('user_id_client_use', receiverId);
+
+    //            var user_id_client_using = sessionStorage.getItem('user_id_client_use');
+
+    //            loadMessagesById(user_id_client_using, client_id_client_use);
+    //        });
+    //    } else if (admin_user_role != null && admin_user_role == 'Admin' && admin_user_role === 'Admin') {
+
+    //        sessionStorage.setItem('admin_connection_id', connection.connectionId);
+
+    //        if (receivers.length > 0) {
+    //            const firstReceiver = $receiverList.find('.receiver-item').first();
+    //            const receiversId = firstReceiver.data('id');
+    //            $('.receiver-item').removeClass('selected');
+    //            firstReceiver.addClass('selected');
+    //            receiverId = receiversId;
+
+    //            loadMessagesById(admin_user_id_admin_end, client_id_admin_end);
+    //        }
+
+    //        $('.receiver-item').on('click', function () {
+
+    //            const receiversId = $(this).data('id');
+
+    //            $('.receiver-item').removeClass('selected');
+    //            $(this).addClass('selected');
+
+    //            receiverId = receiversId;
+    //            sessionStorage.setItem('client_id_admin_end', '');
+    //            sessionStorage.setItem('client_id_admin_end', receiverId);
+
+    //            var client_id_admin_end_using = sessionStorage.getItem('client_id_admin_end');
+
+    //            loadMessagesById(admin_user_id_admin_end, client_id_admin_end_using);
+    //        });
+    //    }
+    //}
 
     function showModal() {
         $('#alertModal').show();
@@ -661,7 +792,7 @@
 
                         updateReceiverList(userResponse);
 
-                        loadMessagesById(firstUser.admin_user_id,firstUser.client_id);
+                        loadMessagesById(firstUser.admin_user_id, firstUser.client_id);
                         //sessionStorage.setItem('userid', firstUser.userid);
                     } else {
                         console.warn("No users found in response.");
@@ -676,5 +807,5 @@
         } catch (error) {
             console.error("Error logging in:", error);
         }
-    });    
+    });
 });

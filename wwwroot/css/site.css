@@ -2,18 +2,32 @@ html {
   font-size: 14px;
 }
 
-/*.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+/* Light Theme Styles */
+body.light-theme {
+    background-color: #ffffff; /* White background for light theme */
+    color: #000000; /* Black text for light theme */
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+/* Dark Theme Styles */
+body.dark-theme {
+    background-color: #121212; /* Dark background for dark theme */
+    color: #ffffff; /* White text for dark theme */
 }
 
-body {
-  margin-bottom: 60px;
-}*/
+/* Customize receiver items */
+.receiver-item {
+    background-color: #f8f9fa; /* Light background for receiver items in light theme */
+    color: #000; /* Text color for light theme */
+}
+
+body.dark-theme .receiver-item {
+    background-color: #1e1e1e; /* Dark background for receiver items in dark theme */
+    color: #ffffff; /* Text color for dark theme */
+}
+
+/* Add any other custom styles needed for both themes */
+
+
 
 @media (max-width: 768px) {
     .chat-container {
